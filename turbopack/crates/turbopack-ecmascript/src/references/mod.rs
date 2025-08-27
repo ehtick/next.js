@@ -499,7 +499,7 @@ pub(crate) async fn analyse_ecmascript_module(
     }
 }
 
-pub(crate) async fn analyse_ecmascript_module_internal(
+pub async fn analyse_ecmascript_module_internal(
     module: ResolvedVc<EcmascriptModuleAsset>,
     part: Option<ModulePart>,
 ) -> Result<Vc<AnalyzeEcmascriptModuleResult>> {
@@ -1034,9 +1034,8 @@ pub(crate) async fn analyse_ecmascript_module_internal(
 
             match effect {
                 Effect::Unreachable { start_ast_path } => {
-                    analysis.add_code_gen(Unreachable::new(AstPathRange::StartAfter(
-                        start_ast_path.to_vec(),
-                    )));
+                    analysis
+                        .add_code_gen(Unreachable::new(AstPathRange::StartAfter(start_ast_path)));
                 }
                 Effect::Conditional {
                     condition,
@@ -1311,12 +1310,22 @@ pub(crate) async fn analyse_ecmascript_module_internal(
                 } => {
                     // FreeVar("require") might be turbopackIgnore-d
                     if !analysis_state
-                        .link_value(*var.clone(), eval_context.imports.get_attributes(span))
+                        .link_value(
+                            JsValue::FreeVar(var.clone()),
+                            eval_context.imports.get_attributes(span),
+                        )
                         .await?
                         .is_unknown()
                     {
-                        handle_free_var(&ast_path, *var, span, &analysis_state, &mut analysis)
-                            .await?;
+                        // Call handle free var
+                        handle_free_var(
+                            &ast_path,
+                            JsValue::FreeVar(var),
+                            span,
+                            &analysis_state,
+                            &mut analysis,
+                        )
+                        .await?;
                     }
                 }
                 Effect::Member {

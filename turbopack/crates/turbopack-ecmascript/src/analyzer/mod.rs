@@ -3445,7 +3445,7 @@ pub enum WellKnownObjectKind {
 impl WellKnownObjectKind {
     pub fn as_define_name(&self) -> Option<&[&str]> {
         match self {
-            Self::GlobalObject => Some(&["global"]),
+            Self::GlobalObject => Some(&["Object"]),
             Self::PathModule => Some(&["path"]),
             Self::FsModule => Some(&["fs"]),
             Self::UrlModule => Some(&["url"]),
@@ -4073,7 +4073,10 @@ mod tests {
                                 steps
                             }
                             Effect::FreeVar { var, .. } => {
-                                resolved.push((format!("{parent} -> {i} free var"), *var));
+                                resolved.push((
+                                    format!("{parent} -> {i} free var"),
+                                    JsValue::FreeVar(var),
+                                ));
                                 0
                             }
                             Effect::TypeOf { arg, .. } => {
